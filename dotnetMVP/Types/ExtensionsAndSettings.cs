@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using Serilog.Sinks.Grafana.Loki;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace dotnetMVP.Types
@@ -16,7 +17,8 @@ namespace dotnetMVP.Types
                             outputTemplate:
                                 "[{Timestamp:HH:mm:ss} {Level:u3}] " +
                                 "{Message:lj} " +
-                                "{Properties:j}{NewLine}{Exception}"); 
+                                "{Properties:j}{NewLine}{Exception}")
+                        .WriteTo.GrafanaLoki("http://loki:3100"); 
             });
         }
         public static IActionResult ResultToHttpCode<T>(this ControllerBase controller, 

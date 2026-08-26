@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -23,6 +24,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.ConfigureSerilog();
 
 builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("WriteUpDemo")) //чтобы понимать откуда пришло 
+    //.UseOtlpExporter(OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf,)
     .WithTracing(r =>
     {
         r.AddAspNetCoreInstrumentation(); // использование интструментов SDK? под трейсы и спаны ( ниже то же, но с метриками ) 
