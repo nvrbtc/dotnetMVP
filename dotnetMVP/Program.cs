@@ -33,8 +33,15 @@ builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("WriteUp
     })
     .WithMetrics(r =>
     {
-        r.AddAspNetCoreInstrumentation(); 
-        r.AddConsoleExporter();
+        r.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation();
+         r.AddOtlpExporter(exporterOptions =>
+          {
+              exporterOptions.Endpoint = new Uri("http://prometheus:9090/api/v1/otlp/v1/metrics");
+              exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+          });
+
     });
 // Add services to the container.
 builder.Services.AddControllers();

@@ -18,7 +18,16 @@ namespace dotnetMVP.Types
                                 "[{Timestamp:HH:mm:ss} {Level:u3}] " +
                                 "{Message:lj} " +
                                 "{Properties:j}{NewLine}{Exception}")
-                        .WriteTo.GrafanaLoki("http://loki:3100"); 
+                        .WriteTo.GrafanaLoki(
+                            "http://loki:3100",
+                            labels: new[]
+                                {
+                                    new LokiLabel
+                                    {
+                                        Key = "service",
+                                        Value = "WriteUpDemo"
+                                    }
+                                }); 
             });
         }
         public static IActionResult ResultToHttpCode<T>(this ControllerBase controller, 
