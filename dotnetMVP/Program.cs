@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -35,12 +34,7 @@ builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("WriteUp
     {
         r.AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation();
-         r.AddOtlpExporter(exporterOptions =>
-          {
-              exporterOptions.Endpoint = new Uri("http://prometheus:9090/api/v1/otlp/v1/metrics");
-              exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-          });
+            .AddRuntimeInstrumentation().AddPrometheusExporter();
 
     });
 // Add services to the container.
@@ -65,8 +59,6 @@ builder.Services.AddScoped<IPlatformService, PlatformService>();
 builder.Services.AddScoped<PlatformMapper>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
-
-Console.WriteLine(builder.Configuration["JwtSettings:ValidIssuer"]);
 
 builder.Services.AddAuthentication(options => { 
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -134,5 +126,5 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 app.MapControllers();
-
+app.MapPrometheusScrapingEndpoint();
 app.Run();
