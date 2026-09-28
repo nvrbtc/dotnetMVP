@@ -1,0 +1,56 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PostgresqlDefault: "Host=postgres;Port=5432;Database=writeupdemo;Username=dotnet;Password=password123"
+    depends_on:
+      - postgres
+      - loki 
+    container_name: api
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: dotnet
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: writeupdemo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    container_name: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dotnet -d writeupdemo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  loki:
+    image: grafana/loki:k326-83d5c2b
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+    container_name: loki
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - app
+    container_name: prometheus
+
+volumes:
+  postgres_data:
+  loki_data:

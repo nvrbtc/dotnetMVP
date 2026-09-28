@@ -39,10 +39,10 @@ builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("WriteUp
     });
 // Add services to the container.
 builder.Services.AddControllers();
- 
 builder.Services.AddDbContext<ApplicationDBcontext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresqlDefault"))
 );
+Console.WriteLine(builder.Configuration.GetConnectionString("PostgresqlDefault"));
 builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>()
                 .AddEntityFrameworkStores<ApplicationDBcontext>() ;
 
@@ -90,6 +90,9 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
+//Later change to Configure().Bind().ValidateOnStart() [optional + data annotations to meet "requirements" with keys]
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+
 
 builder.Services.AddSwaggerGen();
 
@@ -98,6 +101,9 @@ var app = builder.Build();
 using (var serv = app.Services.CreateScope())
 {
     var db = serv.ServiceProvider.GetRequiredService<ApplicationDBcontext>();
+    var logger = serv.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Connection string: {ConnectionString}", builder.Configuration.GetConnectionString("PostgresqlDefault"));
+    db.Database.GetConnectionString();
     db.Database.Migrate();
     SeedDatabase seed = new SeedDatabase(db, serv.ServiceProvider.GetRequiredService<UserManager<AppUser>>());
     await seed.EnsureRolesAndAdmins();
